@@ -28,7 +28,10 @@ class PlanningAgentManager:
         try:
             response = self.client.models.generate_content(
                 model=self.model_id,
-                contents=f"{SYSTEM_PROMPT}\n\n{prompt}"
+                contents=f"{SYSTEM_PROMPT}\n\n{prompt}",
+                config={
+                    'response_mime_type': 'application/json',
+                }
             )
             if not response or not response.text:
                 return []

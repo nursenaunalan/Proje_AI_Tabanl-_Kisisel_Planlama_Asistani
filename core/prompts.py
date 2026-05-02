@@ -7,7 +7,7 @@ Görevin, kullanıcının kaotik görev listelerini, biyolojik ritimlere ve mode
 
 EXTRACTOR_PROMPT = """
 Aşağıdaki metinden tüm görevleri, süreleri ve kısıtlamaları titizlikle ayıkla.
-Görevleri JSON formatında bir liste olarak dön. 
+SADECE JSON formatında bir liste dön, başka hiçbir açıklama veya metin ekleme.
 
 ANALİZ KRİTERLERİ:
 1. 'task_name': Eylem odaklı, net başlık.
@@ -19,6 +19,8 @@ Metin: {user_input}
 
 PRIORITIZER_PROMPT = """
 Bir strateji dehası olarak görevleri Eisenhower Matrisi ve ROI (Yatırım Getirisi) odağında değerlendir.
+SADECE JSON formatında bir liste dön, başka hiçbir açıklama veya metin ekleme.
+
 JSON Çıktı Parametreleri:
 1. 'importance': (1-10) Görevin ana hedeflere katkısı.
 2. 'urgency': (1-10) Zaman baskısı.
@@ -33,6 +35,7 @@ Görevler: {tasks}
 
 SCHEDULER_PROMPT = """
 Süper-Verimli bir günlük akış mimarı olarak çalış. 
+SADECE JSON formatında bir liste dön, başka hiçbir açıklama veya metin ekleme.
 09:00'da başlayan, bilişsel yükü optimize eden bir plan oluştur.
 
 MİMARİ KURALLAR:
