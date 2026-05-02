@@ -58,30 +58,48 @@ class PlanningAgentManager:
 
     def extract_tasks(self, user_input):
         prompt = EXTRACTOR_PROMPT.format(user_input=user_input)
-        result = self._call_gemini(prompt)
-        return result if isinstance(result, list) else []
+        for _ in range(2): # Retry once
+            result = self._call_gemini(prompt)
+            if result and isinstance(result, list):
+                return result
+        return []
 
     def prioritize_tasks(self, tasks):
         if not tasks: return []
         prompt = PRIORITIZER_PROMPT.format(tasks=json.dumps(tasks, ensure_ascii=False))
-        result = self._call_gemini(prompt)
-        return result if isinstance(result, list) else []
+        for _ in range(2):
+            result = self._call_gemini(prompt)
+            if result and isinstance(result, list):
+                return result
+        return []
 
     def generate_schedule(self, prioritized_tasks):
         if not prioritized_tasks: return []
         prompt = SCHEDULER_PROMPT.format(prioritized_tasks=json.dumps(prioritized_tasks, ensure_ascii=False))
-        result = self._call_gemini(prompt)
-        return result if isinstance(result, list) else []
+        for _ in range(2):
+            result = self._call_gemini(prompt)
+            if result and isinstance(result, list):
+                return result
+        return []
 
     def run_full_chain(self, user_input):
         # Chain 1: Extraction
         tasks = self.extract_tasks(user_input)
+        if not tasks:
+            # If extraction failed, try a very simple extraction
+            tasks = [{"task_name": user_input[:50], "duration": 30, "deadline": None}]
         
         # Chain 2: Prioritization
         prioritized = self.prioritize_tasks(tasks)
+        if not prioritized:
+            # Fallback prioritization
+            prioritized = [{"task_name": t['task_name'], "importance": 5, "urgency": 5, "category": "📅 STRATEJİK"} for t in tasks]
         
         # Chain 3: Scheduling
         schedule = self.generate_schedule(prioritized)
+        if not schedule:
+            # Fallback schedule
+            schedule = [{"time": "09:00 - 10:00", "task": t['task_name'], "note": "Otomatik planlandı."} for t in tasks]
         
         return {
             "original_tasks": tasks,

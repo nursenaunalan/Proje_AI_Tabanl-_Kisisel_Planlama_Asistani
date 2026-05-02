@@ -86,19 +86,19 @@ if st.button("Planımı Oluştur"):
                 # but to fulfill the requirement of FastAPI backend, we use requests.
                 # Note: In a real demo, we'd ensure the server is up.
                 
-                st.write("Görevler ayıklanıyor...")
-                time.sleep(1)
+                # Use cached agent manager for speed
+                if 'agent_manager' not in st.session_state:
+                    from core.agents import PlanningAgentManager
+                    st.session_state.agent_manager = PlanningAgentManager()
                 
                 # API call with smart fallback
                 try:
-                    response = requests.post("http://localhost:8000/plan", json={"user_input": user_input}, timeout=2)
+                    # Try hitting local backend first (short timeout)
+                    response = requests.post("http://localhost:8000/plan", json={"user_input": user_input}, timeout=1)
                     result = response.json()
                 except:
-                    # If localhost fails, we assume we are either in Cloud or local without server
-                    # No need to warn if we have the core logic ready
-                    from core.agents import PlanningAgentManager
-                    am = PlanningAgentManager()
-                    result = am.run_full_chain(user_input)
+                    # Fallback to direct core logic (much faster than a failing request)
+                    result = st.session_state.agent_manager.run_full_chain(user_input)
                 
                 # Key validation
                 if not result or not isinstance(result, dict):
