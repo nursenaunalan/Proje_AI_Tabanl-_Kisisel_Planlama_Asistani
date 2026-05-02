@@ -1,56 +1,28 @@
 # core/prompts.py
 
-SYSTEM_PROMPT = """
-Sen, dünya klasmanında bir stratejik planlama uzmanı ve yüksek performans koçusun. 
-Görevin, kullanıcının kaotik görev listelerini, biyolojik ritimlere ve modern verimlilik prensiplerine (Deep Work, Eat the Frog) uygun, kusursuz bir plana dönüştürmektir.
-"""
+SYSTEM_PROMPT = "Sen profesyonel bir zaman yönetimi asistanısın. Görevin, verilen metinden görevleri ayıklamak, önceliklendirmek ve planlamaktır. Yanıtlarını her zaman geçerli bir JSON listesi olarak ver."
 
 EXTRACTOR_PROMPT = """
-Aşağıdaki metinden tüm görevleri, süreleri ve kısıtlamaları titizlikle ayıkla.
-SADECE JSON formatında bir liste dön, başka hiçbir açıklama veya metin ekleme.
+Aşağıdaki kullanıcı metninden yapılacak işleri (görevleri) ayıkla.
+Her görev için şu alanları içeren bir JSON listesi döndür:
+- task_name: Görevin adı
+- duration: Tahmini süre (dakika cinsinden tam sayı)
+- deadline: Varsa saat (HH:MM), yoksa null
 
-ANALİZ KRİTERLERİ:
-1. 'task_name': Eylem odaklı, net başlık.
-2. 'duration': Tahmini süre (dakika). Metinde yoksa; 'e-posta' için 15, 'rapor/çalışma' için 90, 'toplantı' için 60 dk gibi gerçekçi değerler ata.
-3. 'deadline': Kesin bir saat belirtilmişse (örn. "saat 3'te") HH:MM formatında yaz, yoksa null.
-
-Metin: {user_input}
+Kullanıcı Metni: {user_input}
 """
 
 PRIORITIZER_PROMPT = """
-Bir strateji dehası olarak görevleri Eisenhower Matrisi ve ROI (Yatırım Getirisi) odağında değerlendir.
-SADECE JSON formatında bir liste dön, başka hiçbir açıklama veya metin ekleme.
-
-JSON Çıktı Parametreleri:
-1. 'importance': (1-10) Görevin ana hedeflere katkısı.
-2. 'urgency': (1-10) Zaman baskısı.
-3. 'category': 
-   - "🔥 KRİTİK (Hemen Yap)": Yüksek Önem + Yüksek Aciliyet.
-   - "📅 STRATEJİK (Planla)": Yüksek Önem + Düşük Aciliyet.
-   - "⚡ OPERASYONEL (Devret)": Düşük Önem + Yüksek Aciliyet.
-   - "🗑️ ELENEN/ERTE (Sil)": Düşük Önem + Düşük Aciliyet.
+Aşağıdaki görevleri analiz et ve her biri için önem, aciliyet puanı (1-10) ve kategori ata.
+Kategoriler: "🔥 KRİTİK", "📅 STRATEJİK", "⚡ OPERASYONEL", "🗑️ ERTELENEBİLİR".
+JSON listesi olarak döndür.
 
 Görevler: {tasks}
 """
 
 SCHEDULER_PROMPT = """
-Süper-Verimli bir günlük akış mimarı olarak çalış. 
-SADECE JSON formatında bir liste dön, başka hiçbir açıklama veya metin ekleme.
-09:00'da başlayan, bilişsel yükü optimize eden bir plan oluştur.
-
-MİMARİ KURALLAR:
-1. **Eat the Frog:** En zor ve "KRİTİK" işi sabah ilk sıraya (09:00) koy.
-2. **Deep Work:** Önemli işler için en az 90 dakikalık kesintisiz bloklar ayır.
-3. **Bio-Breaks:** Her 90 dakikada bir 15 dakikalık "Zihinsel Tazelenme" molası ekle.
-4. **Öğle Arası:** 12:30 - 13:30 arasını mutlaka boş bırak (Öğle Yemeği).
-5. **Sığ İşler:** E-posta, telefon gibi düşük enerjili işleri gün sonuna (16:00 sonrası) grupla.
-6. **Çakışma Kontrolü:** Görev saatleri asla üst üste binmemeli.
+Aşağıdaki görevleri kullanarak saat 09:00'dan başlayan, çakışmayan bir günlük program oluştur.
+Her görev için zaman aralığı (time), görev adı (task) ve kısa bir not (note) içeren bir JSON listesi döndür.
 
 Görevler: {prioritized_tasks}
-
-JSON Çıktı Formatı:
-[
-  {{"time": "09:00 - 10:30", "task": "Görev Adı", "note": "Bu saatin stratejik önemi ve ipucu."}},
-  ...
-]
 """

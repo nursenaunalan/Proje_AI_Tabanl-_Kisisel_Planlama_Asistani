@@ -26,47 +26,35 @@ class PlanningAgentManager:
 
     def _call_gemini(self, prompt):
         try:
+            # New SDK prefers system_instruction in config or as a separate argument
             response = self.client.models.generate_content(
                 model=self.model_id,
-                contents=f"{SYSTEM_PROMPT}\n\n{prompt}",
+                contents=prompt,
                 config={
+                    'system_instruction': SYSTEM_PROMPT,
                     'response_mime_type': 'application/json',
                 }
             )
+            
             if not response or not response.text:
                 return []
             
-            text = response.text
-            # JSON bloğunu bulmaya çalış (```json ... ``` veya direkt [...])
-            if "```json" in text:
-                text = text.split("```json")[1].split("```")[0].strip()
-            elif "```" in text:
-                text = text.split("```")[1].split("```")[0].strip()
+            # Since we used response_mime_type: application/json, 
+            # text should be a clean JSON string.
+            return json.loads(response.text.strip())
             
-            # Başındaki/sonundaki gereksiz boşlukları temizle
-            text = text.strip()
-            
-            # Eğer hala JSON gibi görünmüyorsa (köşeli parantez yoksa) 
-            # ama model bir şekilde metin döndüyse, boş liste dönmektense 
-            # basit bir temizleme yapalım.
-            if not (text.startswith("[") or text.startswith("{")):
-                # Metnin içindeki ilk [ veya { karakterini bul
-                start_idx = -1
-                for i, char in enumerate(text):
-                    if char in "[{":
-                        start_idx = i
-                        break
-                if start_idx != -1:
-                    # Sondaki eşleşen karakteri bul
-                    end_char = "]" if text[start_idx] == "[" else "}"
-                    end_idx = text.rfind(end_char)
-                    if end_idx != -1:
-                        text = text[start_idx:end_idx+1]
-
-            return json.loads(text)
         except Exception as e:
             print(f"Gemini/JSON Error: {str(e)}")
-            return []
+            # Fallback for manual cleaning if needed
+            try:
+                text = response.text
+                if "```json" in text:
+                    text = text.split("```json")[1].split("```")[0].strip()
+                elif "```" in text:
+                    text = text.split("```")[1].split("```")[0].strip()
+                return json.loads(text.strip())
+            except:
+                return []
 
     def extract_tasks(self, user_input):
         prompt = EXTRACTOR_PROMPT.format(user_input=user_input)
