@@ -1,7 +1,6 @@
-# core/agents.py
 import os
 import json
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 try:
     from core.prompts import SYSTEM_PROMPT, EXTRACTOR_PROMPT, PRIORITIZER_PROMPT, SCHEDULER_PROMPT
@@ -22,12 +21,15 @@ class PlanningAgentManager:
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY bulunamadı! Lütfen .env dosyasını veya Streamlit Secrets ayarlarını kontrol edin.")
         
-        genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.client = genai.Client(api_key=self.api_key)
+        self.model_id = 'gemini-1.5-flash'
 
     def _call_gemini(self, prompt):
         try:
-            response = self.model.generate_content([SYSTEM_PROMPT, prompt])
+            response = self.client.models.generate_content(
+                model=self.model_id,
+                contents=f"{SYSTEM_PROMPT}\n\n{prompt}"
+            )
             if not response or not response.text:
                 return []
             

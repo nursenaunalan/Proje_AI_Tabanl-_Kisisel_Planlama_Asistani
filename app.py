@@ -89,12 +89,13 @@ if st.button("Planımı Oluştur"):
                 st.write("Görevler ayıklanıyor...")
                 time.sleep(1)
                 
-                # We'll use a try-except to handle cases where the API isn't running yet
+                # API call with smart fallback
                 try:
-                    response = requests.post("http://localhost:8000/plan", json={"user_input": user_input})
+                    response = requests.post("http://localhost:8000/plan", json={"user_input": user_input}, timeout=2)
                     result = response.json()
                 except:
-                    st.warning("API sunucusuna ulaşılamadı. Doğrudan Core logic kullanılıyor...")
+                    # If localhost fails, we assume we are either in Cloud or local without server
+                    # No need to warn if we have the core logic ready
                     from core.agents import PlanningAgentManager
                     am = PlanningAgentManager()
                     result = am.run_full_chain(user_input)
@@ -115,23 +116,25 @@ if st.button("Planımı Oluştur"):
                 col1, col2 = st.columns([1, 1])
                 
                 with col1:
-                    st.subheader("🎯 Önceliklendirme (Eisenhower)")
+                    st.subheader("🎯 Stratejik Önceliklendirme")
                     if result['prioritized_tasks']:
                         df_prioritized = pd.DataFrame(result['prioritized_tasks'])
                         
-                        # Custom display
                         for _, row in df_prioritized.iterrows():
-                            # Default values for missing row keys
                             category = row.get('category', 'Belirlenmedi')
                             importance = row.get('importance', '-')
                             urgency = row.get('urgency', '-')
                             task_name = row.get('task_name', 'İsimsiz Görev')
                             
-                            color_class = "priority-high" if "Acil-Önemli" in str(category) else "priority-med"
+                            # Color logic for new categories
+                            color = "#ef4444" if "DO" in str(category) else \
+                                    "#3b82f6" if "SCHEDULE" in str(category) else \
+                                    "#f59e0b" if "DELEGATE" in str(category) else "#94a3b8"
+                            
                             st.markdown(f"""
-                            <div class="card">
-                                <h4 style="margin:0;">{task_name}</h4>
-                                <p style="margin:5px 0;">Kategori: <span class="{color_class}">{category}</span></p>
+                            <div class="card" style="border-top: 4px solid {color};">
+                                <h4 style="margin:0; color:{color};">{task_name}</h4>
+                                <p style="margin:5px 0;"><b>{category}</b></p>
                                 <small>Önem: {importance}/10 | Aciliyet: {urgency}/10</small>
                             </div>
                             """, unsafe_allow_html=True)
@@ -139,20 +142,23 @@ if st.button("Planımı Oluştur"):
                         st.info("Önceliklendirilecek görev bulunamadı.")
                 
                 with col2:
-                    st.subheader("📅 Günlük Zaman Çizelgesi")
+                    st.subheader("📅 Günlük Akıllı Çizelge")
                     if result['daily_schedule']:
                         for item in result['daily_schedule']:
                             time_val = item.get('time', '--:--')
                             task_val = item.get('task', 'Görev Yok')
                             note_val = item.get('note', '')
                             
+                            # Special styling for break/lunch
+                            is_break = any(x in task_val.lower() for x in ["yemek", "mola", "dinlenme"])
+                            bg_color = "rgba(16, 185, 129, 0.1)" if is_break else "rgba(255, 255, 255, 0.05)"
+                            
                             st.markdown(f"""
-                            <div class="card" style="border-left: 5px solid #3b82f6;">
+                            <div class="card" style="background: {bg_color}; border-left: 5px solid #3b82f6;">
                                 <div style="display: flex; justify-content: space-between;">
-                                    <strong>{time_val}</strong>
-                                    <span style="background: #3b82f6; padding: 2px 8px; border-radius: 8px; font-size: 12px;">Aktif</span>
+                                    <strong style="color: #60a5fa;">{time_val}</strong>
                                 </div>
-                                <p style="margin-top: 10px; font-size: 18px;">{task_val}</p>
+                                <p style="margin-top: 10px; font-size: 18px; font-weight: 600;">{task_val}</p>
                                 <p style="font-style: italic; font-size: 14px; opacity: 0.8;">{note_val}</p>
                             </div>
                             """, unsafe_allow_html=True)
