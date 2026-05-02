@@ -126,16 +126,29 @@ if st.button("Planımı Oluştur"):
                             urgency = row.get('urgency', '-')
                             task_name = row.get('task_name', 'İsimsiz Görev')
                             
-                            # Color logic for new categories
-                            color = "#ef4444" if "DO" in str(category) else \
-                                    "#3b82f6" if "SCHEDULE" in str(category) else \
-                                    "#f59e0b" if "DELEGATE" in str(category) else "#94a3b8"
+                            # Color logic for new professional categories
+                            if "KRİTİK" in str(category):
+                                color = "#ef4444"
+                                icon = "🔥"
+                            elif "STRATEJİK" in str(category):
+                                color = "#3b82f6"
+                                icon = "📅"
+                            elif "OPERASYONEL" in str(category):
+                                color = "#f59e0b"
+                                icon = "⚡"
+                            else:
+                                color = "#94a3b8"
+                                icon = "🗑️"
                             
                             st.markdown(f"""
-                            <div class="card" style="border-top: 4px solid {color};">
-                                <h4 style="margin:0; color:{color};">{task_name}</h4>
-                                <p style="margin:5px 0;"><b>{category}</b></p>
-                                <small>Önem: {importance}/10 | Aciliyet: {urgency}/10</small>
+                            <div class="card" style="border-top: 4px solid {color}; position: relative;">
+                                <div style="position: absolute; top: 10px; right: 10px; font-size: 20px;">{icon}</div>
+                                <h4 style="margin:0; color:{color}; padding-right: 30px;">{task_name}</h4>
+                                <p style="margin:5px 0; font-size: 14px;"><b>{category}</b></p>
+                                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                    <span style="background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-size: 11px;">Önem: {importance}</span>
+                                    <span style="background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-size: 11px;">Aciliyet: {urgency}</span>
+                                </div>
                             </div>
                             """, unsafe_allow_html=True)
                     else:
