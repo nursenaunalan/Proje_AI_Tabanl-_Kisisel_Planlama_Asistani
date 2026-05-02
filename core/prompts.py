@@ -12,13 +12,16 @@ Metin: {user_input}
 """
 
 PRIORITIZER_PROMPT = """
-Bu görevleri Eisenhower Matrisi'ne göre değerlendir. Yanıtın SADECE bir JSON listesi olmalı.
-Kategoriler: "🔥 KRİTİK", "📅 STRATEJİK", "⚡ OPERASYONEL", "🗑️ ERTELENEBİLİR"
+Sen bir strateji uzmanısın. Görevleri Eisenhower Matrisi'ne göre kesin bir doğrulukla önceliklendir.
+SADECE JSON döndür.
 
-JSON SCHEMA:
-[
-  {{"task_name": "string", "importance": integer 1-10, "urgency": integer 1-10, "category": "string"}}
-]
+ÖNCELİKLENDİRME KRİTERLERİ:
+1. 🔥 KRİTİK: Son teslim tarihi bugün olan veya gecikmesi büyük zarar verecek işler.
+2. 📅 STRATEJİK: Gelecek hedefleri için önemli ama hemen bitmesi şart olmayan işler.
+3. ⚡ OPERASYONEL: Başkalarının beklediği veya zaman baskısı olan ama vizyoner olmayan işler.
+4. 🗑️ ERTELENEBİLİR: Olmasa da olur denilen işler.
+
+JSON: [{{"task_name": "...", "importance": 1-10, "urgency": 1-10, "category": "..."}}]
 
 Görevler: {tasks}
 """
